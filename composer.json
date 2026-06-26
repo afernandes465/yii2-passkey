@@ -1,0 +1,48 @@
+{
+    "name": "afernandes465/yii2-passkey",
+    "description": "Yii2 extension providing Passkey (WebAuthn) authentication with support for Face ID, Touch ID, Windows Hello and Android Biometrics.",
+    "type": "yii2-extension",
+    "keywords": [
+        "yii2",
+        "webauthn",
+        "passkey",
+        "faceid",
+        "touchid",
+        "windows-hello",
+        "authentication"
+    ],
+    "license": "MIT",
+    "homepage": "https://github.com/afernandes465/yii2-passkey",
+    "support": {
+        "issues": "https://github.com/afernandes465/yii2-passkey/issues",
+        "source": "https://github.com/afernandes465/yii2-passkey"
+    },
+    "authors": [
+        {
+            "name": "António Fernandes",
+            "email": "afernandes465@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "yiisoft/yii2": "^2.0.53",
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "AFernandes\\Yii2\\Passkey\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AFernandes\\Yii2\\Passkey\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
