@@ -1,0 +1,44 @@
+# Composer
+/vendor/
+/composer.lock
+
+# PHPUnit
+.phpunit.result.cache
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+build/
+clover.xml
+coverage.xml
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+
+# Archive files
+*.zip
+*.tar
+*.gz
+
+# Node (future documentation/examples)
+node_modules/
+npm-debug.log*
+yarn-error.log*
