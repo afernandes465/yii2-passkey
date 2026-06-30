@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Afernandes\Yii2Passkey\interfaces;
+namespace Afernandes\Yii2Passkey\Interfaces;
 
 
 use yii\web\IdentityInterface;

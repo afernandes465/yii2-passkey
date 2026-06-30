@@ -4,19 +4,26 @@ declare(strict_types=1);
 
 namespace Afernandes\Yii2Passkey\Repositories;
 
-use Afernandes\Yii2Passkey\Models\Passkey;
+use Afernandes\Yii2Passkey\Models\ActiveRecord\Passkey;
+use Afernandes\Yii2Passkey\Factories\SerializerFactory;
 use Webauthn\PublicKeyCredentialSource;
 use Webauthn\PublicKeyCredentialSourceRepository;
 use Webauthn\PublicKeyCredentialUserEntity;
 
 class CredentialRepository implements PublicKeyCredentialSourceRepository
 {
+
+    public function __construct(
+        private readonly SerializerFactory $serializerFactory,
+    ) {
+    }
+
     public function findOneByCredentialId(string $publicKeyCredentialId): ?PublicKeyCredentialSource
     {
         $passkey = Passkey::find()
             ->where([
                 'credential_id' => base64_encode($publicKeyCredentialId),
-                'enabled' => 1,
+                'enabled'       => 1,
             ])
             ->one();
 
@@ -67,18 +74,25 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
     protected function serialize(
         PublicKeyCredentialSource $source
     ): string {
-        return json_encode(
-            $source,
-            JSON_THROW_ON_ERROR
-        );
+
+        return $this->serializerFactory
+            ->create()
+            ->serialize(
+                $source,
+                'json'
+            );
     }
 
     protected function unserialize(
         string $json
     ): PublicKeyCredentialSource {
 
-        throw new \RuntimeException(
-            'To be implemented.'
-        );
+        return $this->serializerFactory
+            ->create()
+            ->deserialize(
+                $json,
+                PublicKeyCredentialSource::class,
+                'json'
+            );
     }
 }

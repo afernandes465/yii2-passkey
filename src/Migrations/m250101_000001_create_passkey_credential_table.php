@@ -16,6 +16,8 @@ class m250101_000001_create_passkey_credential_table extends Migration
 
             'credential_id' => $this->binary()->notNull(),
 
+            'source' => $this->string(),
+
             'public_key' => $this->binary()->notNull(),
 
             'user_handle' => $this->binary(),

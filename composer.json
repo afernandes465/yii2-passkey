@@ -29,26 +29,34 @@
             "url": "https://asset-packagist.org"
         }
     ],
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "extra": {
+        "bootstrap": "Afernandes\\Yii2Passkey\\Bootstrap",
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    },
     "require": {
         "php": "^8.1",
+        "phpdocumentor/reflection-docblock": "^5.2",
+        "symfony/property-access": "^6.4",
+        "symfony/property-info": "^6.4",
+        "symfony/serializer": "^6.4",
         "web-auth/webauthn-lib": "^4.9",
-        "yidas/yii2-composer-bower-skip": "^2.0",
         "yiisoft/yii2": "^2.0.55"
-    },
-    "extra": {
-        "bootstrap": "Afernandes\\Yii2Passkey\\Bootstrap"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5"
     },
     "autoload": {
         "psr-4": {
-            "AFernandes\\Yii2\\Passkey\\": "src/"
+            "Afernandes\\Yii2Passkey\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "AFernandes\\Yii2\\Passkey\\Tests\\": "tests/"
+            "Afernandes\\Yii2Passkey\\Tests\\": "tests/"
         }
     },
     "config": {
@@ -56,7 +64,5 @@
         "allow-plugins": {
             "yiisoft/yii2-composer": true
         }
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true
+    }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Afernandes\Yii2Passkey\Models;
+namespace Afernandes\Yii2Passkey\Models\ActiveRecord;
 
 use yii\db\ActiveRecord;
 
@@ -54,6 +54,7 @@ class Passkey extends ActiveRecord
             [['transports'], 'string', 'max' => 255],
             [['attestation_type'], 'string', 'max' => 50],
             [['device_name'], 'string', 'max' => 255],
+            [['source'], 'string' ],
 
             [['credential_id'], 'unique'],
         ];
