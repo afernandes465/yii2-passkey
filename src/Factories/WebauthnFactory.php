@@ -70,11 +70,16 @@ class WebauthnFactory
         $manager->add(new PackedAttestationStatementSupport(
             new Manager()
         ));
-        $manager->add(new FidoU2FAttestationStatementSupport());
-        $manager->add(new AndroidKeyAttestationStatementSupport());
-        $manager->add(new AndroidSafetyNetAttestationStatementSupport());
-        $manager->add(new TpmAttestationStatementSupport());
-        $manager->add(new AppleAttestationStatementSupport());
+        // $manager->add(new FidoU2FAttestationStatementSupport());
+        // $manager->add(new AndroidKeyAttestationStatementSupport());
+        // $manager->add(new TpmAttestationStatementSupport());
+        // $manager->add(new AppleAttestationStatementSupport());
+
+        if ($this->config->enableSafetyNet) {
+            $manager->add(
+                new AndroidSafetyNetAttestationStatementSupport()
+            );
+        }
 
         return $this->attestationStatementSupportManager = $manager;
     }

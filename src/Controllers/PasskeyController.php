@@ -74,7 +74,7 @@ class PasskeyController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        return $this->registrationService->register(
+        return $this->registrationService()->register(
             Yii::$app->user->identity,
             Yii::$app->request->getRawBody()
         );
