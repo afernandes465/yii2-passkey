@@ -4,43 +4,52 @@ use Afernandes\Yii2Passkey\Assets\PasskeyAsset;
 
 PasskeyAsset::register($this);
 
-
 ?>
 
-
-
-<button id="register" class="btn btn-outline-secondary">
+<button id="register">
     Registar Passkey
 </button>
 
-<pre id="result"></pre>
+<button id="login">
+    Entrar com Passkey
+</button>
 
 <script>
+
     document.getElementById('register').onclick = async () => {
 
         try {
 
-            const result = await Passkey.register({
-                registrationOptionsUrl: <?= json_encode(
-                    \yii\helpers\Url::to(['/passkey/passkey/registration-options'])
-                ) ?>,
-
-                registrationUrl: <?= json_encode(
-                    \yii\helpers\Url::to(['/passkey/passkey/registration'])
-                ) ?>
-            });
+            const result = await Passkey.register();
 
             console.log(result);
-
-            document.getElementById('result').textContent =
-                JSON.stringify(result, null, 4);
 
         } catch (e) {
 
             console.error(e);
 
             alert(e.message);
+
         }
 
     };
+
+    document.getElementById('login').onclick = async () => {
+
+        try {
+
+            const result = await Passkey.authenticate();
+
+            console.log(result);
+
+        } catch (e) {
+
+            console.error(e);
+
+            alert(e.message);
+
+        }
+
+    };
+
 </script>

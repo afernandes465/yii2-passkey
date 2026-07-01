@@ -10,6 +10,7 @@ use Afernandes\Yii2Passkey\PasskeyConfig;
 use Afernandes\Yii2Passkey\Repositories\CredentialRepository;
 use Afernandes\Yii2Passkey\Services\ChallengeService;
 use Afernandes\Yii2Passkey\Services\RegistrationService;
+use Closure;
 use Yii;
 use yii\base\Module as BaseModule;
 
@@ -21,6 +22,10 @@ class Module extends BaseModule
     public $defaultRoute = 'passkey';
 
     public PasskeyConfig $config;
+
+
+    public ?Closure $identityLoader = null;
+
 
     public function init(): void
     {

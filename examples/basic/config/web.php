@@ -1,5 +1,7 @@
 <?php
 
+use app\models\User;
+
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
@@ -14,6 +16,7 @@ $config = [
     'modules'    => [
         'passkey' => [
             'class'  => \Afernandes\Yii2Passkey\Module::class,
+            'identityLoader' => static fn(string $userId) => User::findIdentity($userId),
              'config' => new \Afernandes\Yii2Passkey\PasskeyConfig([
                 'rpId'   => 'localhost',
                 'rpName' => 'Example',

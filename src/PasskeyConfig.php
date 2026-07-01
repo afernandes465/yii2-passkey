@@ -1,6 +1,7 @@
 <?php
 namespace Afernandes\Yii2Passkey;
 
+use Closure;
 use Webauthn\AuthenticatorSelectionCriteria;
 
 final class PasskeyConfig extends \yii\base\BaseObject
@@ -27,4 +28,5 @@ final class PasskeyConfig extends \yii\base\BaseObject
         -7,   // ES256
         -257, // RS256
     ];
+
 }

@@ -1,135 +1,183 @@
 class Passkey {
 
-    static async register(options = {}) {
+    static #config = {};
 
-        const publicKey = await this.#getRegistrationOptions(options);
+    static configure(config) {
 
-        publicKey.challenge = this.#base64urlToBuffer(
-            publicKey.challenge
-        );
-
-        publicKey.user.id = this.#base64urlToBuffer(
-            publicKey.user.id
-        );
-
-        if (publicKey.excludeCredentials) {
-
-            publicKey.excludeCredentials =
-                publicKey.excludeCredentials.map(item => ({
-                    ...item,
-                    id: this.#base64urlToBuffer(item.id),
-                }));
-
-        }
-
-        const credential = await navigator.credentials.create({
-            publicKey
-        });
-
-        return await this.#finishRegistration(
-            credential,
-            options
-        );
-    }
-
-    static async authenticate(options = {}) {
-
-    }
-
-    static async #getRegistrationOptions(options = {}) {
-
-        const url = options.registrationOptionsUrl
-            ?? '/passkey/registration-options';
-
-        const headers = {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
+        this.#config = {
+            ...this.#config,
+            ...config
         };
 
-        // Adiciona automaticamente o CSRF do Yii2, caso exista
-        const csrf = document.querySelector('meta[name="csrf-token"]');
+        return this;
+    }
 
-        if (csrf) {
-            headers['X-CSRF-Token'] = csrf.content;
-        }
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers,
-            credentials: 'same-origin',
-        });
+    static config(name) {
 
-        if (!response.ok) {
+        const value = this.#config[name];
+
+        if (typeof value === 'undefined') {
             throw new Error(
-                `Unable to obtain registration options (${response.status}).`
+                `Missing Passkey configuration: ${name}`
             );
         }
 
-        return await response.json();
+        return value;
     }
 
-    static async #finishRegistration(credential, options = {}) {
 
-        const url = options.registrationUrl
-            ?? '/passkey/registration';
+    static async execute(action, callback) {
 
-        const headers = {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        };
+        try {
+            const result = await action();
 
-        const csrf = document.querySelector('meta[name="csrf-token"]');
+            try {
+                this.#config[callback]?.(result);
+            } catch (e) {
+                console.error(e);
+            }
 
-        if (csrf) {
-            headers['X-CSRF-Token'] = csrf.content;
+            return result;
+
+        } catch (error) {
+
+            try {
+                this.#config.onError?.(error);
+            } catch (e) {
+                console.error(e);
+            }
+            throw error;
         }
+    }
 
-        const payload = {
-            id: credential.id,
-            rawId: this.#bufferToBase64url(credential.rawId),
-            type: credential.type,
-            response: {
-                clientDataJSON: this.#bufferToBase64url(
-                    credential.response.clientDataJSON
-                ),
-                attestationObject: this.#bufferToBase64url(
-                    credential.response.attestationObject
-                ),
-            },
-        };
+    static async register() {
 
-        // Extensões (caso existam)
-        if (typeof credential.getClientExtensionResults === 'function') {
-            payload.clientExtensionResults =
-                credential.getClientExtensionResults();
-        }
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers,
-            credentials: 'same-origin',
-            body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
+        if (!this.isSupported()) {
             throw new Error(
-                `Unable to complete registration (${response.status}).`
+                'Passkeys are not supported by this browser.'
+            );
+        }
+        return this.execute(async () => {
+            const options = await this.getRegistrationOptions();
+
+            options.challenge =
+                this.base64urlToBuffer(options.challenge);
+
+            options.user.id =
+                this.base64urlToBuffer(options.user.id);
+
+            if (options.excludeCredentials) {
+
+                for (const credential of options.excludeCredentials) {
+                    credential.id =
+                        this.base64urlToBuffer(credential.id);
+                }
+            }
+
+            const credential =
+                await navigator.credentials.create({
+                    publicKey: options
+                });
+
+            return this.finishRegistration(
+                credential
+            );
+        }, 'onRegistered');
+    }
+
+    static async authenticate() {
+
+        if (!this.isSupported()) {
+            throw new Error(
+                'Passkeys are not supported by this browser.'
             );
         }
 
-        return await response.json();
+        return this.execute(async () => {
+            const options =
+                await this.getAuthenticationOptions();
+
+            options.challenge =
+                this.base64urlToBuffer(options.challenge);
+
+            if (options.allowCredentials) {
+
+                for (const credential of options.allowCredentials) {
+                    credential.id =
+                        this.base64urlToBuffer(credential.id);
+                }
+            }
+
+            const credential =
+                await navigator.credentials.get({
+                    publicKey: options
+                });
+
+            return this.finishAuthentication(
+                credential
+            );
+        }, 'onAuthenticated');
+
     }
 
-    static #base64urlToBuffer(base64url) {
+    static async getRegistrationOptions() {
+
+        return this.post(
+            this.config('registrationOptionsUrl')
+        );
+
+    }
+
+    static async finishRegistration(
+        credential
+    ) {
+
+        return this.post(
+            this.config('registrationUrl'),
+            this.serializeCredential(credential)
+        );
+
+    }
+
+    static async getAuthenticationOptions() {
+
+        return this.post(
+            this.config('authenticationOptionsUrl')
+        );
+
+    }
+
+    static async finishAuthentication(
+        credential
+    ) {
+
+        return this.post(
+            this.config('authenticationUrl'),
+            this.serializeCredential(credential)
+        );
+
+    }
+
+    static async isUserVerifyingPlatformAuthenticatorAvailable() {
+
+        if (!this.isSupported()) {
+            return false;
+        }
+
+        return await PublicKeyCredential
+            .isUserVerifyingPlatformAuthenticatorAvailable();
+
+    }
+
+    static base64urlToBuffer(base64url) {
 
         const base64 = base64url
             .replace(/-/g, '+')
             .replace(/_/g, '/');
 
         const padding = '='.repeat((4 - (base64.length % 4)) % 4);
-
         const binary = atob(base64 + padding);
-
         const bytes = new Uint8Array(binary.length);
 
         for (let i = 0; i < binary.length; i++) {
@@ -137,9 +185,10 @@ class Passkey {
         }
 
         return bytes;
+
     }
 
-    static #bufferToBase64url(buffer) {
+    static bufferToBase64url(buffer) {
 
         const bytes = buffer instanceof Uint8Array
             ? buffer
@@ -155,6 +204,116 @@ class Passkey {
             .replace(/\+/g, '-')
             .replace(/\//g, '_')
             .replace(/=+$/, '');
+    }
+
+    static async post(
+        url,
+        body = null
+    ) {
+
+        const response =
+            await fetch(url, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type':
+                        'application/json',
+                    'X-CSRF-Token':
+                        this.getCsrfToken()
+                },
+                body:
+                    body
+                        ? JSON.stringify(body)
+                        : null
+
+            });
+
+        if (!response.ok) {
+
+            let message = response.statusText;
+
+            try {
+                const error = await response.json();
+                message = error.message ?? message;
+
+            } catch (_) {
+                message = await response.text();
+            }
+
+            throw new Error(message);
+        }
+
+        const result = await response.json();
+
+        return result;
+
+    }
+
+    static getCsrfToken() {
+
+        return document.querySelector(
+            'meta[name="csrf-token"]'
+        )?.content;
+
+    }
+
+    static serializeCredential(credential) {
+
+        return this.convert({
+            id: credential.id,
+            rawId: credential.rawId,
+            type: credential.type,
+            transports: credential.response.getTransports?.(),
+            response: credential.response,
+            clientExtensionResults: credential.getClientExtensionResults(),
+        });
+
+    }
+
+    static convert(value) {
+
+        if (
+            value instanceof ArrayBuffer ||
+            value instanceof Uint8Array
+        ) {
+            return this.bufferToBase64url(value);
+        }
+
+        if (value instanceof Date) {
+            return value.toISOString();
+        }
+
+        if (value instanceof File || value instanceof Blob) {
+            return value;
+        }
+
+        if (Array.isArray(value)) {
+            return value.map(v => this.convert(v));
+        }
+
+        if (value && typeof value === 'object') {
+
+            const result = {};
+
+            for (const [key, val] of Object.entries(value)) {
+                result[key] = this.convert(val);
+            }
+
+            return result;
+        }
+
+        return value;
+    }
+
+    static isSupported() {
+
+        return (
+            typeof window !== 'undefined' &&
+            window.isSecureContext &&
+            typeof PublicKeyCredential !== 'undefined' &&
+            !!navigator.credentials
+        );
+
     }
 }
 

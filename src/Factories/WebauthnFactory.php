@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Afernandes\Yii2Passkey\Factories;
 
 use Afernandes\Yii2Passkey\PasskeyConfig;
+use Afernandes\Yii2Passkey\Repositories\CredentialRepository;
 use Cose\Algorithm\Manager;
 use Symfony\Component\Serializer\SerializerInterface;
 use Webauthn\AttestationStatement\AndroidKeyAttestationStatementSupport;
@@ -125,14 +126,17 @@ class WebauthnFactory
             );
     }
 
-    public function createAssertionValidator(): AuthenticatorAssertionResponseValidator
-    {
+    public function createAssertionValidator(
+        CredentialRepository $credentialRepository
+    ): AuthenticatorAssertionResponseValidator {
+
         if ($this->assertionValidator !== null) {
             return $this->assertionValidator;
         }
 
         return $this->assertionValidator =
             new AuthenticatorAssertionResponseValidator(
+                publicKeyCredentialSourceRepository: $credentialRepository,
                 ceremonyStepManager: $this->createRequestCeremony()
             );
     }
