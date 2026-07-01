@@ -135,11 +135,6 @@ class Passkey {
         credential
     ) {
 
-        console.log('REG');
-        console.log(this.serializeCredential(credential));
-        console.log(Object.entries(credential.response));
-
-
         return this.post(
             this.config('registrationUrl'),
             this.serializeCredential(credential)
@@ -158,10 +153,6 @@ class Passkey {
     static async finishAuthentication(
         credential
     ) {
-
-        console.log('AUTH');
-        console.log(this.serializeCredential(credential));
-        console.log(Object.entries(credential.response));
 
         return this.post(
             this.config('authenticationUrl'),
@@ -270,50 +261,50 @@ class Passkey {
 
     static serializeCredential(credential) {
 
-        return this.convert({
+        let response;
+
+        if (credential.response instanceof AuthenticatorAttestationResponse) {
+
+            response = {
+                clientDataJSON: this.bufferToBase64url(
+                    credential.response.clientDataJSON
+                ),
+                attestationObject: this.bufferToBase64url(
+                    credential.response.attestationObject
+                ),
+                transports: credential.response.getTransports?.()
+            };
+
+        } else {
+
+            response = {
+                clientDataJSON: this.bufferToBase64url(
+                    credential.response.clientDataJSON
+                ),
+                authenticatorData: this.bufferToBase64url(
+                    credential.response.authenticatorData
+                ),
+                signature: this.bufferToBase64url(
+                    credential.response.signature
+                ),
+                userHandle: credential.response.userHandle
+                    ? this.bufferToBase64url(
+                        credential.response.userHandle
+                    )
+                    : null
+            };
+        }
+
+        return {
             id: credential.id,
-            rawId: credential.rawId,
+            rawId: this.bufferToBase64url(
+                credential.rawId
+            ),
             type: credential.type,
-            transports: credential.response.getTransports?.(),
-            response: credential.response,
-            clientExtensionResults: credential.getClientExtensionResults(),
-        });
-
-    }
-
-    static convert(value) {
-
-        if (
-            value instanceof ArrayBuffer ||
-            value instanceof Uint8Array
-        ) {
-            return this.bufferToBase64url(value);
-        }
-
-        if (value instanceof Date) {
-            return value.toISOString();
-        }
-
-        if (value instanceof File || value instanceof Blob) {
-            return value;
-        }
-
-        if (Array.isArray(value)) {
-            return value.map(v => this.convert(v));
-        }
-
-        if (value && typeof value === 'object') {
-
-            const result = {};
-
-            for (const [key, val] of Object.entries(value)) {
-                result[key] = this.convert(val);
-            }
-
-            return result;
-        }
-
-        return value;
+            response,
+            clientExtensionResults:
+                credential.getClientExtensionResults(),
+        };
     }
 
     static isSupported() {

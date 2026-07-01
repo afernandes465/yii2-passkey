@@ -23,7 +23,7 @@ class Passkey extends ActiveRecord
 
     public static function tableName(): string
     {
-        return '{{%passkey}}';
+        return '{{%passkey_credential}}';
     }
 
     public function rules(): array
