@@ -1,5 +1,7 @@
 class Passkey {
 
+    static #v = 'v1';
+
     static #config = {};
 
     static configure(config) {
@@ -133,6 +135,11 @@ class Passkey {
         credential
     ) {
 
+        console.log('REG');
+        console.log(this.serializeCredential(credential));
+        console.log(Object.entries(credential.response));
+
+
         return this.post(
             this.config('registrationUrl'),
             this.serializeCredential(credential)
@@ -151,6 +158,10 @@ class Passkey {
     static async finishAuthentication(
         credential
     ) {
+
+        console.log('AUTH');
+        console.log(this.serializeCredential(credential));
+        console.log(Object.entries(credential.response));
 
         return this.post(
             this.config('authenticationUrl'),
