@@ -1,5 +1,5 @@
 {
-    "name": "afernandes465/yii2-passkey",
+    "name": "afernandes/yii2-passkey",
     "description": "Yii2 extension providing Passkey (WebAuthn) authentication with support for Face ID, Touch ID, Windows Hello and Android Biometrics.",
     "type": "yii2-extension",
     "keywords": [
