@@ -68,8 +68,7 @@ class Module extends BaseModule
             RegistrationService::class,
             [],
             [
-                Yii::$container->get(PasskeyConfig::class),
-                Yii::$app->session,
+                Yii::$container->get(PasskeyConfig::class)
             ]
         );
     }
