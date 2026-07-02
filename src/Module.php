@@ -8,8 +8,8 @@ use Afernandes\Yii2Passkey\Factories\SerializerFactory;
 use Afernandes\Yii2Passkey\Factories\WebauthnFactory;
 use Afernandes\Yii2Passkey\PasskeyConfig;
 use Afernandes\Yii2Passkey\Repositories\CredentialRepository;
-use Afernandes\Yii2Passkey\Services\ChallengeService;
 use Afernandes\Yii2Passkey\Services\RegistrationService;
+use Afernandes\Yii2Passkey\Services\SessionStorageService;
 use Closure;
 use Yii;
 use yii\base\Module as BaseModule;
@@ -49,7 +49,7 @@ class Module extends BaseModule
         );
 
         $container->setSingleton(
-            ChallengeService::class
+            SessionStorageService::class
         );
 
         $container->setSingleton(
