@@ -83,7 +83,7 @@ class RegistrationService
         string $payload
     ): array {
 
-        $creationOptions = $this->registrationOptions->get();
+        $creationOptions = $this->storage->load();
 
         if (!$creationOptions instanceof PublicKeyCredentialCreationOptions) {
             throw new BadRequestHttpException(
