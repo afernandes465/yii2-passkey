@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Afernandes\Yii2Passkey\Services;
 
+use Exception;
 use Yii;
 use yii\web\Session;
 
-class RegistrationOptionsService
+class SessionStorageService
 {
-    private const SESSION_KEY = 'passkey.registration.options';
+    private const SESSION_KEY = 'passkey.storage';
 
     public function __construct(
         private ?Session $session = null
@@ -21,7 +22,7 @@ class RegistrationOptionsService
     /**
      * Salva o valor.
      */
-    public function set($options): void
+    public function save($options): void
     {
         $this->session->set(
             self::SESSION_KEY,
@@ -29,16 +30,16 @@ class RegistrationOptionsService
         );
     }
 
-
     /**
      * Obtém o valor atual.
      */
-    public function get(): ?string
+    public function load(): ?string
     {
         $options = $this->session->get(self::SESSION_KEY);
 
         if ($options === null) {
-            return null;
+            throw new Exception("Key not created");
+
         }
 
         return $options;

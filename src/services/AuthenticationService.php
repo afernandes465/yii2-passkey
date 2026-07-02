@@ -18,7 +18,7 @@ class AuthenticationService
 {
     public function __construct(
         private readonly PasskeyConfig $config,
-        private readonly ChallengeService $challengeService,
+        private readonly SessionStorageService $storage,
         private readonly SerializerFactory $serializerFactory,
         private readonly WebauthnFactory $webauthnFactory,
         private readonly CredentialRepository $credentialRepository,
@@ -27,8 +27,11 @@ class AuthenticationService
 
     public function createOptions(): PublicKeyCredentialRequestOptions
     {
+        $challenge = random_bytes(32);
+        $this->storage->save($challenge);
+
         $options = new PublicKeyCredentialRequestOptions(
-            challenge: $this->challengeService->generate(),
+            challenge: $challenge,
             timeout: $this->config->timeout,
             rpId: $this->config->rpId,
         );
@@ -39,16 +42,8 @@ class AuthenticationService
     public function authenticate(string $payload): string
     {
 
-        $challenge = $this->challengeService->get();
-
-        if ($challenge === null) {
-            throw new BadRequestHttpException(
-                'Authentication session expired.'
-            );
-        }
-
         $requestOptions = new PublicKeyCredentialRequestOptions(
-            challenge: $challenge,
+            challenge: $this->storage->load(),
             timeout: $this->config->timeout,
             rpId: $this->config->rpId,
         );
@@ -69,12 +64,14 @@ class AuthenticationService
                 $this->config->rpId,
                 null
             );
- 
+            // $this->credentialRepository
+            //     ->updateCredential($credentialSource);
+
             return $credentialSource->userHandle;
 
         } finally {
 
-            $this->challengeService->clear();
+            $this->storage->clear();
 
         }
     }

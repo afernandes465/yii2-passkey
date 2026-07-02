@@ -24,7 +24,7 @@ class RegistrationService
 {
     public function __construct(
         private readonly PasskeyConfig $config,
-        private readonly RegistrationOptionsService $registrationOptions,
+        private readonly SessionStorageService $storage,
         private readonly SerializerFactory $serializerFactory,
         private readonly WebauthnFactory $webauthnFactory,
         private readonly CredentialRepository $credentialRepository,
@@ -72,7 +72,7 @@ class RegistrationService
             timeout: $this->config->timeout
         );
 
-        $this->registrationOptions->set($options);
+        $this->storage->save($options);
 
         return $options;
     }
@@ -137,7 +137,7 @@ class RegistrationService
         $this->credentialRepository
             ->saveCredentialSource($source);
 
-        $this->registrationOptions->clear();
+        $this->storage->clear();
 
         return [
             'success' => true,
