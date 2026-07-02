@@ -9,7 +9,7 @@ use yii\web\Session;
 
 class ChallengeService
 {
-    private const SESSION_KEY = '__passkey_challenge';
+    private const SESSION_KEY = 'passkey.authentication.options';
 
     public function __construct(
         private ?Session $session = null

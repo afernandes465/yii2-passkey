@@ -7,24 +7,27 @@ use Afernandes\Yii2Passkey\Interfaces\PasskeyIdentityInterface;
 class User extends \yii\base\BaseObject implements PasskeyIdentityInterface
 {
     public $id;
-    public $username;
+    public $email;
+    public $name;
     public $password;
     public $authKey;
     public $accessToken;
 
     private static $users = [
         '100' => [
-            'id' => '100',
-            'username' => 'admin',
-            'password' => 'admin',
-            'authKey' => 'test100key',
+            'id'          => '100',
+            'email'       => 'admin@mail.void',
+            'name'        => 'Admin',
+            'password'    => 'admin',
+            'authKey'     => 'test100key',
             'accessToken' => '100-token',
         ],
         '101' => [
-            'id' => '101',
-            'username' => 'demo',
-            'password' => 'demo',
-            'authKey' => 'test101key',
+            'id'          => '101',
+            'email'       => 'staff@mail.void',
+            'name'        => 'Staff',
+            'password'    => 'staff',
+            'authKey'     => 'test101key',
             'accessToken' => '101-token',
         ],
     ];
@@ -55,13 +58,13 @@ class User extends \yii\base\BaseObject implements PasskeyIdentityInterface
     /**
      * Finds user by username
      *
-     * @param string $username
+     * @param string $email
      * @return static|null
      */
-    public static function findByUsername($username)
+    public static function findByUsername($email)
     {
         foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
+            if (strcasecmp($user['email'], $email) === 0) {
                 return new static($user);
             }
         }
@@ -107,22 +110,26 @@ class User extends \yii\base\BaseObject implements PasskeyIdentityInterface
     /**
      * @inheritDoc
      */
-    public function getPasskeyDisplayName(): string {
-
-    return 'mail@mail.void';
+    public function getPasskeyDisplayName(): string
+    {
+        //Nome a mostrar
+        return (string) $this->name;
     }
 
     /**
      * @inheritDoc
      */
-    public function getPasskeyId(): string {
-        return '01';
+    public function getPasskeyId(): string
+    {
+        return (string) $this->getId();
     }
 
     /**
      * @inheritDoc
      */
-    public function getPasskeyName(): string {
-        return 'UserTest';
+    public function getPasskeyName(): string
+    {
+        //Email
+        return (string) $this->email;
     }
 }

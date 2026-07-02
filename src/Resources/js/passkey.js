@@ -137,7 +137,7 @@ class Passkey {
 
         return this.post(
             this.config('registrationUrl'),
-            this.serializeCredential(credential)
+            this.serializeRegistrationCredential(credential)
         );
 
     }
@@ -156,7 +156,7 @@ class Passkey {
 
         return this.post(
             this.config('authenticationUrl'),
-            this.serializeCredential(credential)
+            this.serializeAuthenticationCredential(credential)
         );
 
     }
@@ -259,41 +259,45 @@ class Passkey {
 
     }
 
-    static serializeCredential(credential) {
 
-        let response;
+    static serializeAuthenticationCredential(credential) {
 
-        if (credential.response instanceof AuthenticatorAttestationResponse) {
+        const response = {
+            clientDataJSON: this.bufferToBase64url(
+                credential.response.clientDataJSON
+            ),
+            authenticatorData: this.bufferToBase64url(
+                credential.response.authenticatorData
+            ),
+            signature: this.bufferToBase64url(
+                credential.response.signature
+            ),
+            userHandle: credential.response.userHandle
+                ? this.bufferToBase64url(
+                    credential.response.userHandle
+                )
+                : null
+        };
 
-            response = {
-                clientDataJSON: this.bufferToBase64url(
-                    credential.response.clientDataJSON
-                ),
-                attestationObject: this.bufferToBase64url(
-                    credential.response.attestationObject
-                ),
-                transports: credential.response.getTransports?.()
-            };
+        return this.serializeCredentialResponse(credential, response);
+    }
 
-        } else {
+    static serializeRegistrationCredential(credential) {
 
-            response = {
-                clientDataJSON: this.bufferToBase64url(
-                    credential.response.clientDataJSON
-                ),
-                authenticatorData: this.bufferToBase64url(
-                    credential.response.authenticatorData
-                ),
-                signature: this.bufferToBase64url(
-                    credential.response.signature
-                ),
-                userHandle: credential.response.userHandle
-                    ? this.bufferToBase64url(
-                        credential.response.userHandle
-                    )
-                    : null
-            };
-        }
+        const response = {
+            clientDataJSON: this.bufferToBase64url(
+                credential.response.clientDataJSON
+            ),
+            attestationObject: this.bufferToBase64url(
+                credential.response.attestationObject
+            ),
+            transports: credential.response.getTransports?.()
+        };
+
+        return this.serializeCredentialResponse(credential, response);
+    }
+
+    static serializeCredentialResponse(credential, response) {
 
         return {
             id: credential.id,

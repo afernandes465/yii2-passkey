@@ -6,7 +6,6 @@ namespace Afernandes\Yii2Passkey\Repositories;
 
 use Afernandes\Yii2Passkey\Factories\SerializerFactory;
 use Afernandes\Yii2Passkey\Models\ActiveRecord\Passkey;
-use ParagonIE\ConstantTime\Base64UrlSafe;
 use RuntimeException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Webauthn\PublicKeyCredentialSource;
@@ -16,7 +15,6 @@ use yii\helpers\Json;
 
 class CredentialRepository implements PublicKeyCredentialSourceRepository
 {
-
 
     private ?SerializerInterface $serializer = null;
 
@@ -54,7 +52,7 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
 
         $query = Passkey::find()
             ->where([
-                'credential_id' => $this->encodeCredentialId($publicKeyCredentialId),
+                'credential_id' => $publicKeyCredentialId,
             ]);
 
         if ($onlyEnabled) {
@@ -90,16 +88,19 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
         PublicKeyCredentialSource $publicKeyCredentialSource
     ): void {
 
-        $passkey = new Passkey();
-
-        $passkey->user_id = $publicKeyCredentialSource->userHandle;
-
-        $passkey->credential_id = $this->encodeCredentialId(
-            $publicKeyCredentialSource->publicKeyCredentialId
+        $passkey = $this->findPasskeyByCredentialId(
+            $publicKeyCredentialSource->publicKeyCredentialId,
+            false // incluir desativadas se necessário
         );
 
-        $passkey->source = $this->serializeSource($publicKeyCredentialSource);
+        if ($passkey === null) {
+            $passkey = new Passkey();
+            $passkey->created_at = date('Y-m-d H:i:s');            
+        }
 
+        $passkey->user_id = $publicKeyCredentialSource->userHandle;
+        $passkey->credential_id = $publicKeyCredentialSource->publicKeyCredentialId;
+        $passkey->source = $this->serializeSource($publicKeyCredentialSource);
         $passkey->enabled = Passkey::STATUS_ENABLED;
 
         if (!$passkey->save()) {
@@ -109,35 +110,6 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
         }
     }
 
-    public function updateCredential(
-        PublicKeyCredentialSource $source
-    ): void {
-
-        $passkey = $this->findPasskeyByCredentialId(
-            $source->publicKeyCredentialId
-        );
-
-        if ($passkey === null) {
-            throw new RuntimeException(
-                'Credential not found.'
-            );
-        }
-
-        $passkey->source = $this->serializeSource($source);
-
-        $passkey->last_used_at = date('Y-m-d H:i:s');
-
-        if (
-            !$passkey->save(false, [
-                'source',
-                'last_used_at',
-            ])
-        ) {
-            throw new RuntimeException(
-                Json::encode($passkey->errors)
-            );
-        }
-    }
 
     public function deleteCredentialSource(string $credentialId): bool
     {
@@ -161,7 +133,6 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
 
     public function touchCredential(string $credentialId): void
     {
-
         $passkey = $this->findPasskeyByCredentialId(
             $credentialId
         );
@@ -178,7 +149,6 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
 
     private function serializeSource(PublicKeyCredentialSource $source): string
     {
-
         return $this->serializer()->serialize(
             $source,
             'json'
@@ -187,16 +157,10 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
 
     private function deserializeSource(string $json): PublicKeyCredentialSource
     {
-
         return $this->serializer()->deserialize(
             $json,
             PublicKeyCredentialSource::class,
             'json'
         );
-    }
-
-    private function encodeCredentialId(string $id): string
-    {
-        return Base64UrlSafe::encodeUnpadded($id);
     }
 }

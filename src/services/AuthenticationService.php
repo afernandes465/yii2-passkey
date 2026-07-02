@@ -12,13 +12,13 @@ use Webauthn\AuthenticatorAssertionResponse;
 use Webauthn\PublicKeyCredential;
 use Webauthn\PublicKeyCredentialRequestOptions;
 use yii\web\BadRequestHttpException;
-use yii\web\Session;
+
 
 class AuthenticationService
 {
     public function __construct(
         private readonly PasskeyConfig $config,
-        private readonly Session $session,
+        private readonly ChallengeService $challengeService,
         private readonly SerializerFactory $serializerFactory,
         private readonly WebauthnFactory $webauthnFactory,
         private readonly CredentialRepository $credentialRepository,
@@ -27,35 +27,60 @@ class AuthenticationService
 
     public function createOptions(): PublicKeyCredentialRequestOptions
     {
-        $challenge = random_bytes(32);
-
         $options = new PublicKeyCredentialRequestOptions(
-            challenge: $challenge,
+            challenge: $this->challengeService->generate(),
             timeout: $this->config->timeout,
             rpId: $this->config->rpId,
-        );
-
-        $this->session->set(
-            'passkey.authentication.options',
-            $options
         );
 
         return $options;
     }
 
-    public function authenticate(
-        string $payload
-    ): string {
+    public function authenticate(string $payload): string
+    {
 
-        $requestOptions = $this->session->get(
-            'passkey.authentication.options'
-        );
+        $challenge = $this->challengeService->get();
 
-        if (!$requestOptions instanceof PublicKeyCredentialRequestOptions) {
+        if ($challenge === null) {
             throw new BadRequestHttpException(
                 'Authentication session expired.'
             );
         }
+
+        $requestOptions = new PublicKeyCredentialRequestOptions(
+            challenge: $challenge,
+            timeout: $this->config->timeout,
+            rpId: $this->config->rpId,
+        );
+
+        try {
+
+            $credential = $this->deserializeCredential($payload);
+            $response = $this->getAssertionResponse($credential);
+
+            $validator = $this->webauthnFactory->createAssertionValidator(
+                $this->credentialRepository
+            );
+
+            $credentialSource = $validator->check(
+                $credential->rawId,
+                $response,
+                $requestOptions,
+                $this->config->rpId,
+                null
+            );
+ 
+            return $credentialSource->userHandle;
+
+        } finally {
+
+            $this->challengeService->clear();
+
+        }
+    }
+
+    private function deserializeCredential(string $payload): PublicKeyCredential
+    {
 
         $credential = $this->serializerFactory
             ->create()
@@ -71,46 +96,18 @@ class AuthenticationService
             );
         }
 
-        $response = $credential->response;
+        return $credential;
+    }
 
-        if (!$response instanceof AuthenticatorAssertionResponse) {
+    private function getAssertionResponse(
+        PublicKeyCredential $credential
+    ): AuthenticatorAssertionResponse {
+        if (!$credential->response instanceof AuthenticatorAssertionResponse) {
             throw new BadRequestHttpException(
                 'Invalid authenticator response.'
             );
         }
 
-        $validator = $this->webauthnFactory
-            ->createAssertionValidator(
-                $this->credentialRepository
-            );
-
-        try {
-            $credentialSource = $validator->check(
-                $credential->rawId,
-                $response,
-                $requestOptions,
-                $this->config->rpId,
-                null
-            );
-
-        } catch (\Throwable $e) {
-
-            throw new BadRequestHttpException(
-                $e->getMessage(),
-                0,
-                $e
-            );
-
-        }
-
-        $this->credentialRepository
-            ->updateCredential($credentialSource);
-
-
-        $this->session->remove(
-            'passkey.authentication.options'
-        );
-
-        return $credentialSource->userHandle;
+        return $credential->response;
     }
 }

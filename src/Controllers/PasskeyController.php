@@ -8,7 +8,6 @@ use Afernandes\Yii2Passkey\Factories\SerializerFactory;
 use Afernandes\Yii2Passkey\Interfaces\PasskeyIdentityInterface;
 use Afernandes\Yii2Passkey\Services\AuthenticationService;
 use Afernandes\Yii2Passkey\Services\RegistrationService;
-use Exception;
 use RuntimeException;
 use Yii;
 use yii\base\InvalidConfigException;
@@ -77,11 +76,9 @@ class PasskeyController extends Controller
         );
     }
 
-
     public function actionRegistration(): array
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-
 
         return $this->registrationService()->register(
             $this->getPasskeyIdentity(),
@@ -122,7 +119,6 @@ class PasskeyController extends Controller
                 'The "identityLoader" callback must return an instance of yii\web\IdentityInterface.'
             );
         }
-
 
         if (!Yii::$app->user->login($user)) {
             throw new RuntimeException(
