@@ -13,6 +13,7 @@ use Afernandes\Yii2Passkey\Services\SessionStorageService;
 use Closure;
 use Yii;
 use yii\base\Module as BaseModule;
+use yii\web\Session;
 
 class Module extends BaseModule
 {
@@ -70,6 +71,11 @@ class Module extends BaseModule
             [
                 Yii::$container->get(PasskeyConfig::class)
             ]
+        );
+
+        $container->set(
+            Session::class,
+            static fn() => Yii::$app->session
         );
     }
 

@@ -28,7 +28,6 @@ class AuthenticationService
     public function createOptions(): PublicKeyCredentialRequestOptions
     {
         $challenge = random_bytes(32);
-        $this->storage->save($challenge);
 
         $options = new PublicKeyCredentialRequestOptions(
             challenge: $challenge,
@@ -36,17 +35,16 @@ class AuthenticationService
             rpId: $this->config->rpId,
         );
 
+
+        $this->storage->saveRequestOptions($options);
+
         return $options;
     }
 
     public function authenticate(string $payload): string
     {
 
-        $requestOptions = new PublicKeyCredentialRequestOptions(
-            challenge: $this->storage->load(),
-            timeout: $this->config->timeout,
-            rpId: $this->config->rpId,
-        );
+        $requestOptions = $this->storage->loadRequestOptions();
 
         try {
 
@@ -64,14 +62,12 @@ class AuthenticationService
                 $this->config->rpId,
                 null
             );
-            // $this->credentialRepository
-            //     ->updateCredential($credentialSource);
 
             return $credentialSource->userHandle;
 
         } finally {
 
-            $this->storage->clear();
+            $this->storage->clearRequestOptions();
 
         }
     }

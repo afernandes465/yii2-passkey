@@ -9,7 +9,7 @@ use yii\web\AssetBundle;
 class PasskeyAsset extends AssetBundle
 {
     //public $sourcePath = __DIR__ . '/../../resources';
-    public $sourcePath = '@vendor/afernandes465/yii2-passkey/src/Resources';
+    public $sourcePath = '@vendor/afernandes/yii2-passkey/src/Resources';
 
     public $js = [
         'js/passkey.js',

@@ -72,7 +72,7 @@ class RegistrationService
             timeout: $this->config->timeout
         );
 
-        $this->storage->save($options);
+        $this->storage->saveCreationOptions($options);
 
         return $options;
     }
@@ -83,13 +83,7 @@ class RegistrationService
         string $payload
     ): array {
 
-        $creationOptions = $this->storage->load();
-
-        if (!$creationOptions instanceof PublicKeyCredentialCreationOptions) {
-            throw new BadRequestHttpException(
-                'Registration session expired.'
-            );
-        }
+        $creationOptions = $this->storage->loadCreationOptions();
 
         $credential = $this->serializerFactory
             ->create()
@@ -137,7 +131,7 @@ class RegistrationService
         $this->credentialRepository
             ->saveCredentialSource($source);
 
-        $this->storage->clear();
+        $this->storage->clearCreationOptions();
 
         return [
             'success' => true,

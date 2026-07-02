@@ -4,55 +4,82 @@ declare(strict_types=1);
 
 namespace Afernandes\Yii2Passkey\Services;
 
-use Exception;
+
+use Webauthn\PublicKeyCredentialCreationOptions;
+use Webauthn\PublicKeyCredentialRequestOptions;
 use Yii;
+use yii\web\BadRequestHttpException;
 use yii\web\Session;
 
 class SessionStorageService
 {
-    private const SESSION_KEY = 'passkey.storage';
+    private const SESSION_CREATION_OPTIONS = 'passkey.creation.options';
+    private const SESSION_REQUEST_OPTIONS = 'passkey.request.options';
 
     public function __construct(
-        private ?Session $session = null
+        private readonly Session $session
     ) {
-        $this->session ??= Yii::$app->session;
     }
 
 
-    /**
-     * Salva o valor.
-     */
-    public function save($options): void
+    public function saveCreationOptions(PublicKeyCredentialCreationOptions $options): void
     {
-        $this->session->set(
-            self::SESSION_KEY,
-            $options
+        $this->save(self::SESSION_CREATION_OPTIONS, $options);
+    }
+
+    public function loadCreationOptions(): PublicKeyCredentialCreationOptions
+    {
+        /** @var PublicKeyCredentialCreationOptions */
+        return $this->load(
+            self::SESSION_CREATION_OPTIONS,
+            PublicKeyCredentialCreationOptions::class,
+            'Registration session expired.'
         );
     }
 
-    /**
-     * Obtém o valor atual.
-     */
-    public function load(): ?string
+
+    public function saveRequestOptions(PublicKeyCredentialRequestOptions $requestOptions): void
     {
-        $options = $this->session->get(self::SESSION_KEY);
+        $this->save(self::SESSION_REQUEST_OPTIONS, $requestOptions);
+    }
 
-        if ($options === null) {
-            throw new Exception("Key not created");
+    public function loadRequestOptions(): PublicKeyCredentialRequestOptions
+    {
 
+        /** @var PublicKeyCredentialRequestOptions */
+        return $this->load(
+            self::SESSION_CREATION_OPTIONS,
+            PublicKeyCredentialRequestOptions::class,
+            'Registration session expired.'
+        );
+
+    }
+
+    private function save(string $key, object $object): void
+    {
+        $this->session->set($key, $object);
+    }
+
+    private function load(string $key, string $expectedClass, string $errorMessage): object
+    {
+
+        $object = $this->session->get($key);
+
+        if (!$object instanceof $expectedClass) {
+            throw new BadRequestHttpException($errorMessage);
         }
 
-        return $options;
+        return $object;
     }
 
-    /**
-     * Remove o valor.
-     */
-    public function clear(): void
+    public function clearRequestOptions(): void
     {
-        $this->session->remove(self::SESSION_KEY);
+        $this->session->remove(self::SESSION_REQUEST_OPTIONS);
     }
 
-
+    public function clearCreationOptions(): void
+    {
+        $this->session->remove(self::SESSION_CREATION_OPTIONS);
+    }
 
 }
