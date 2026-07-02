@@ -38,6 +38,19 @@ PasskeyAsset::register($this);
 
         try {
 
+            Passkey.configure({
+                onRegistered() {
+                    alert('Registo feito com sucesso');
+                },
+                onAuthenticated() {
+
+                    location.reload();
+                },
+                onError() {
+                    alert('Erro no processo');
+                }
+            });
+
             const result = await Passkey.authenticate();
 
             console.log(result);

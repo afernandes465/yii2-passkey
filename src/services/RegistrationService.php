@@ -24,7 +24,7 @@ class RegistrationService
 {
     public function __construct(
         private readonly PasskeyConfig $config,
-        private readonly \yii\web\Session $session,
+        private readonly RegistrationOptionsService $registrationOptions,
         private readonly SerializerFactory $serializerFactory,
         private readonly WebauthnFactory $webauthnFactory,
         private readonly CredentialRepository $credentialRepository,
@@ -72,10 +72,7 @@ class RegistrationService
             timeout: $this->config->timeout
         );
 
-        $this->session->set(
-            'passkey.registration.options',
-            $options
-        );
+        $this->registrationOptions->set($options);
 
         return $options;
     }
@@ -86,9 +83,7 @@ class RegistrationService
         string $payload
     ): array {
 
-        $creationOptions = $this->session->get(
-            'passkey.registration.options'
-        );
+        $creationOptions = $this->registrationOptions->get();
 
         if (!$creationOptions instanceof PublicKeyCredentialCreationOptions) {
             throw new BadRequestHttpException(
@@ -142,9 +137,7 @@ class RegistrationService
         $this->credentialRepository
             ->saveCredentialSource($source);
 
-        $this->session->remove(
-            'passkey.registration.options'
-        );
+        $this->registrationOptions->clear();
 
         return [
             'success' => true,
