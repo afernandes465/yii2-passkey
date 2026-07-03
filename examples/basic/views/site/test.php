@@ -19,6 +19,14 @@ PasskeyAsset::register($this);
     document.getElementById('register').onclick = async () => {
 
         try {
+             Passkey.configure({
+                onRegistered() {
+                    alert('Registo feito com sucesso');
+                },
+                onError(err) {
+                    alert('Erro no registo: ' + err);
+                }
+            });
 
             const result = await Passkey.register();
 
@@ -39,15 +47,11 @@ PasskeyAsset::register($this);
         try {
 
             Passkey.configure({
-                onRegistered() {
-                    alert('Registo feito com sucesso');
-                },
                 onAuthenticated() {
-
                     location.reload();
                 },
-                onError() {
-                    alert('Erro no processo');
+                onError(err) {
+                    alert('Erro no login: ' + err);
                 }
             });
 

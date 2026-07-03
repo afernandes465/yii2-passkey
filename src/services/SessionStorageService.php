@@ -48,7 +48,7 @@ class SessionStorageService
 
         /** @var PublicKeyCredentialRequestOptions */
         return $this->load(
-            self::SESSION_CREATION_OPTIONS,
+            self::SESSION_REQUEST_OPTIONS,
             PublicKeyCredentialRequestOptions::class,
             'Registration session expired.'
         );

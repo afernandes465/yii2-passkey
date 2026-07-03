@@ -8,10 +8,10 @@ use Afernandes\Yii2Passkey\Factories\SerializerFactory;
 use Afernandes\Yii2Passkey\Interfaces\PasskeyIdentityInterface;
 use Afernandes\Yii2Passkey\Services\AuthenticationService;
 use Afernandes\Yii2Passkey\Services\RegistrationService;
+use Exception;
 use RuntimeException;
 use Yii;
 use yii\base\InvalidConfigException;
-use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
 
@@ -33,41 +33,15 @@ class PasskeyController extends Controller
         return Yii::$container->get(SerializerFactory::class);
     }
 
-    public function behaviors(): array
-    {
-
-        return [
-            'access' => [
-                'class' => AccessControl::class,
-                'only'  => [
-                    'registration-options',
-                    'registration'
-                ],
-                'rules' => [
-                    [
-                        'actions' => [
-                            'registration-options',
-                            'registration',
-                        ],
-                        'allow'   => true,
-                        'roles'   => ['@'],
-                    ],
-                    [
-                        'actions' => [
-                            'authentication-options',
-                            'authentication',
-                        ],
-                        'allow'   => true,
-                        'roles'   => ['?'],
-                    ],
-                ],
-            ],
-        ];
-    }
-
     public function actionRegistrationOptions(): array
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
+
+        if (Yii::$app->user->isGuest) {
+            throw new Exception(
+                'User must be authenticated.'
+            );
+        }
 
         return $this->serializeResponse(
             $this->registrationService()->createOptions(
@@ -78,6 +52,13 @@ class PasskeyController extends Controller
 
     public function actionRegistration(): array
     {
+
+        if (Yii::$app->user->isGuest) {
+            throw new Exception(
+                'User must be authenticated.'
+            );
+        }
+
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         return $this->registrationService()->register(
