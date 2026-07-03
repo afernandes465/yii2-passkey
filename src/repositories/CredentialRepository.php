@@ -52,7 +52,7 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
 
         $query = Passkey::find()
             ->where([
-                'credential_id' => $publicKeyCredentialId,
+                'credential_id' => $this->parseToBase64($publicKeyCredentialId),
             ]);
 
         if ($onlyEnabled) {
@@ -95,11 +95,11 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
 
         if ($passkey === null) {
             $passkey = new Passkey();
-            $passkey->created_at = date('Y-m-d H:i:s');            
+            $passkey->created_at = date('Y-m-d H:i:s');
         }
 
         $passkey->user_id = $publicKeyCredentialSource->userHandle;
-        $passkey->credential_id = $publicKeyCredentialSource->publicKeyCredentialId;
+        $passkey->credential_id = $this->parseToBase64($publicKeyCredentialSource->publicKeyCredentialId);
         $passkey->source = $this->serializeSource($publicKeyCredentialSource);
         $passkey->enabled = Passkey::STATUS_ENABLED;
 
@@ -162,5 +162,10 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
             PublicKeyCredentialSource::class,
             'json'
         );
+    }
+
+    private function parseToBase64($text): string
+    {
+        return rtrim(strtr(base64_encode($text), '+/', '-_'), '=');
     }
 }
