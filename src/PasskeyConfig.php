@@ -1,7 +1,7 @@
 <?php
 namespace Afernandes\Yii2Passkey;
 
-use Closure;
+
 use Webauthn\AuthenticatorSelectionCriteria;
 
 final class PasskeyConfig extends \yii\base\BaseObject
@@ -16,7 +16,6 @@ final class PasskeyConfig extends \yii\base\BaseObject
 
     public bool $requireUserVerification = true;
 
-    public bool $enableSafetyNet = false;
 
     public string $residentKey =
         AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_PREFERRED;

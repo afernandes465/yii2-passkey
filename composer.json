@@ -43,7 +43,7 @@
         "symfony/property-access": "^6.4",
         "symfony/property-info": "^6.4",
         "symfony/serializer": "^6.4",
-        "web-auth/webauthn-lib": "^4.9",
+        "web-auth/webauthn-lib": "^5.3",
         "yiisoft/yii2": "^2.0.55"
     },
     "require-dev": {

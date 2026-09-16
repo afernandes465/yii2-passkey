@@ -5,17 +5,11 @@ declare(strict_types=1);
 namespace Afernandes\Yii2Passkey\Factories;
 
 use Afernandes\Yii2Passkey\PasskeyConfig;
-use Afernandes\Yii2Passkey\Repositories\CredentialRepository;
 use Cose\Algorithm\Manager;
 use Symfony\Component\Serializer\SerializerInterface;
-use Webauthn\AttestationStatement\AndroidKeyAttestationStatementSupport;
-use Webauthn\AttestationStatement\AndroidSafetyNetAttestationStatementSupport;
-use Webauthn\AttestationStatement\AppleAttestationStatementSupport;
 use Webauthn\AttestationStatement\AttestationStatementSupportManager;
-use Webauthn\AttestationStatement\FidoU2FAttestationStatementSupport;
 use Webauthn\AttestationStatement\NoneAttestationStatementSupport;
 use Webauthn\AttestationStatement\PackedAttestationStatementSupport;
-use Webauthn\AttestationStatement\TpmAttestationStatementSupport;
 use Webauthn\AuthenticatorAssertionResponseValidator;
 use Webauthn\AuthenticatorAttestationResponseValidator;
 use Webauthn\CeremonyStep\CeremonyStepManager;
@@ -76,12 +70,7 @@ class WebauthnFactory
         // $manager->add(new TpmAttestationStatementSupport());
         // $manager->add(new AppleAttestationStatementSupport());
 
-        if ($this->config->enableSafetyNet) {
-            $manager->add(
-                new AndroidSafetyNetAttestationStatementSupport()
-            );
-        }
-
+       
         return $this->attestationStatementSupportManager = $manager;
     }
 
@@ -126,9 +115,7 @@ class WebauthnFactory
             );
     }
 
-    public function createAssertionValidator(
-        CredentialRepository $credentialRepository
-    ): AuthenticatorAssertionResponseValidator {
+    public function createAssertionValidator(): AuthenticatorAssertionResponseValidator {
 
         if ($this->assertionValidator !== null) {
             return $this->assertionValidator;
@@ -136,7 +123,6 @@ class WebauthnFactory
 
         return $this->assertionValidator =
             new AuthenticatorAssertionResponseValidator(
-                publicKeyCredentialSourceRepository: $credentialRepository,
                 ceremonyStepManager: $this->createRequestCeremony()
             );
     }

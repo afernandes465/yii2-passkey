@@ -8,12 +8,11 @@ use Afernandes\Yii2Passkey\Factories\SerializerFactory;
 use Afernandes\Yii2Passkey\Models\ActiveRecord\Passkey;
 use RuntimeException;
 use Symfony\Component\Serializer\SerializerInterface;
-use Webauthn\PublicKeyCredentialSource;
-use Webauthn\PublicKeyCredentialSourceRepository;
+use Webauthn\CredentialRecord;
 use Webauthn\PublicKeyCredentialUserEntity;
 use yii\helpers\Json;
 
-class CredentialRepository implements PublicKeyCredentialSourceRepository
+class CredentialRepository
 {
 
     private ?SerializerInterface $serializer = null;
@@ -31,7 +30,7 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
     }
 
 
-    public function findOneByCredentialId(string $publicKeyCredentialId): ?PublicKeyCredentialSource
+    public function findOneByCredentialId(string $publicKeyCredentialId): ?CredentialRecord
     {
         $passkey = $this->findPasskeyByCredentialId(
             $publicKeyCredentialId
@@ -85,11 +84,11 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
     }
 
     public function saveCredentialSource(
-        PublicKeyCredentialSource $publicKeyCredentialSource
+        CredentialRecord $credentialRecord
     ): void {
 
         $passkey = $this->findPasskeyByCredentialId(
-            $publicKeyCredentialSource->publicKeyCredentialId,
+            $credentialRecord->publicKeyCredentialId,
             false // incluir desativadas se necessário
         );
 
@@ -98,9 +97,9 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
             $passkey->created_at = date('Y-m-d H:i:s');
         }
 
-        $passkey->user_id = $publicKeyCredentialSource->userHandle;
-        $passkey->credential_id = $this->parseToBase64($publicKeyCredentialSource->publicKeyCredentialId);
-        $passkey->source = $this->serializeSource($publicKeyCredentialSource);
+        $passkey->user_id = $credentialRecord->userHandle;
+        $passkey->credential_id = $this->parseToBase64($credentialRecord->publicKeyCredentialId);
+        $passkey->source = $this->serializeSource($credentialRecord);
         $passkey->enabled = Passkey::STATUS_ENABLED;
 
         if (!$passkey->save()) {
@@ -147,7 +146,7 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
     }
 
 
-    private function serializeSource(PublicKeyCredentialSource $source): string
+    private function serializeSource(CredentialRecord $source): string
     {
         return $this->serializer()->serialize(
             $source,
@@ -155,11 +154,11 @@ class CredentialRepository implements PublicKeyCredentialSourceRepository
         );
     }
 
-    private function deserializeSource(string $json): PublicKeyCredentialSource
+    private function deserializeSource(string $json): CredentialRecord
     {
         return $this->serializer()->deserialize(
             $json,
-            PublicKeyCredentialSource::class,
+            CredentialRecord::class,
             'json'
         );
     }

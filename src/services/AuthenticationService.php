@@ -51,18 +51,26 @@ class AuthenticationService
             $credential = $this->deserializeCredential($payload);
             $response = $this->getAssertionResponse($credential);
 
-            $validator = $this->webauthnFactory->createAssertionValidator(
-                $this->credentialRepository
-            );
+
+            $credentialRecord = $this->credentialRepository
+                ->findOneByCredentialId($credential->rawId);
+
+            if ($credentialRecord === null) {
+                throw new BadRequestHttpException('Credential not found.');
+            }
+
+            $validator = $this->webauthnFactory->createAssertionValidator();
 
             $credentialSource = $validator->check(
-                $credential->rawId,
+                $credentialRecord,
                 $response,
                 $requestOptions,
                 $this->config->rpId,
                 null
             );
 
+            $this->credentialRepository->saveCredentialSource($credentialSource);
+            
             return $credentialSource->userHandle;
 
         } finally {
