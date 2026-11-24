@@ -101,7 +101,7 @@ class PasskeyController extends Controller
             );
         }
 
-        if (!Yii::$app->user->login($user)) {
+        if (!Yii::$app->user->login($user, max(0, (int) $this->module->loginDuration))) {
             throw new RuntimeException(
                 'Unable to authenticate the user.'
             );

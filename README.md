@@ -44,6 +44,16 @@ Configure the module.
 ],
 ```
 
+By default a passkey login lasts only while the session does. To keep the user logged in (like "remember me"),
+set `loginDuration` in seconds; the user component needs `enableAutoLogin`.
+
+```php
+'passkey' => [
+    'class'         => Afernandes\Yii2Passkey\Module::class,
+    'loginDuration' => 3600 * 24 * 30, // 30 days
+],
+```
+
 Run the migrations.
 
 ```bash

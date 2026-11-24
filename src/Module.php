@@ -27,6 +27,13 @@ class Module extends BaseModule
 
     public ?Closure $identityLoader = null;
 
+    /**
+     * Seconds the user stays logged in after a passkey login (identity cookie, like "remember me").
+     * 0 keeps the default Yii behaviour: the login lasts only while the session does.
+     * Requires `enableAutoLogin` on the user component when greater than 0.
+     */
+    public int $loginDuration = 0;
+
 
     public function init(): void
     {
